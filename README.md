@@ -13,9 +13,8 @@ With an active selection, it will execute only the selected code:
 ![Screenshot](https://raw.github.com/harveyr/SublimeSnipe/master/snipe2.jpg)
 
 
+Also supports **Javascript** (via node.js) and **PHP**.
+
 I threw this together in a hurry. I'll try to make it a little more sophisticated shortly.
 
-For example:
-
-1. I'm not sure what happens when your code hangs.
-1. I need to add support for a few more languages.
+For example, I'm not sure what happens when your code hangs.
