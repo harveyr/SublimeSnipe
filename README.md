@@ -19,4 +19,4 @@ Also supports **Javascript** (via node.js) and **PHP**.
 
 I threw this together in a hurry. I'll try to make it a little more sophisticated shortly.
 
-For example, I'm not sure what happens when your code hangs.
+For example, I'm not sure what happens when your code hangs. My guess is Sublime goes nighty-night.
