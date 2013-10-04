@@ -28,15 +28,25 @@ class SniperCommand(sublime_plugin.TextCommand):
         if "source.python" in scopes:
             cmd = "python"
             extension = ".py"
+        elif "source.js" in scopes:
+            cmd = "node"
+            extension = ".js"
+        elif "source.php" in scopes:
+            cmd = "php"
+            extension = ".php"
+        else:
+            print("[SublimeSnipe] Scope not supported: {}".format(scopes))
+            return False
 
-        handle, path = tempfile.mkstemp(
-            prefix="sublime_sniper", suffix=extension, text=True)
+        handle, path = tempfile.mkstemp(prefix="sublime_sniper",
+                                        suffix=extension,
+                                        text=True)
         with open(path, 'w') as f:
             f.write(code)
 
         p = subprocess.Popen(
             [cmd, path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        self.report("[SublimeSnipe: Opening Process {}".format(p.pid))
+        self.report("[SublimeSnipe: Opening Process {}]".format(p.pid))
         out, err = p.communicate()
         self.report(err.decode('utf-8') + out.decode('utf-8'))
 
