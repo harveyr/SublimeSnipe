@@ -20,3 +20,8 @@ Also supports **Javascript** (via node.js) and **PHP**.
 I threw this together in a hurry. I'll try to make it a little more sophisticated shortly.
 
 For example, I'm not sure what happens when your code hangs. My guess is Sublime goes nighty-night.
+
+
+#### Vs. Build System
+
+Yeah, you can use the Sublime build system to basically do the same thing (except for executing only your selection). However, then you have to save your file somewhere. If you're just quickly testing out a few lines of code, that bugs.
