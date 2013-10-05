@@ -2,6 +2,7 @@ import subprocess
 import sublime
 import sublime_plugin
 import tempfile
+import os
 
 
 class SniperSetPanelText(sublime_plugin.TextCommand):
@@ -38,17 +39,20 @@ class SniperCommand(sublime_plugin.TextCommand):
             print("[SublimeSnipe] Scope not supported: {}".format(scopes))
             return False
 
-        handle, path = tempfile.mkstemp(prefix="sublime_sniper",
-                                        suffix=extension,
-                                        text=True)
-        with open(path, 'w') as f:
+        tf = tempfile.NamedTemporaryFile(
+            mode='w',
+            suffix=extension,
+            prefix="sublime_sniper",
+            delete=False)
+        with open(tf.name, 'w') as f:
             f.write(code)
 
         p = subprocess.Popen(
-            [cmd, path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            [cmd, tf.name], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         self.report("[SublimeSnipe: Opening Process {}]".format(p.pid))
         out, err = p.communicate()
         self.report(err.decode('utf-8') + out.decode('utf-8'))
+        os.remove(tf.name)
 
     def report(self, results):
         results = "[SublimeSnipe Results]\n" + results
