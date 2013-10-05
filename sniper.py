@@ -33,6 +33,9 @@ class SniperCommand(sublime_plugin.TextCommand):
             cmd = "node"
             extension = ".js"
         elif "source.php" in scopes:
+            # It doesn't look like Sublime will even let you impose the PHP
+            # scope unless there's the opening <?php tag, so we shouldn't
+            # have to worry about checking whether it's there.
             cmd = "php"
             extension = ".php"
         else:
