@@ -6,6 +6,17 @@ import os
 import shlex
 
 
+def uncertain_executable(func):
+    """Decorates execution of code, in case the compiler/etc. does not exist."""
+    def wrapper(self, *args, **kwargs):
+        try:
+            return func(self, *args, **kwargs)
+        except FileNotFoundError as e:
+            self.report('Executable not found: {}'.format(e))
+            return False
+    return wrapper
+
+
 class SniperSetPanelText(sublime_plugin.TextCommand):
     def run(self, edit, text):
         window = sublime.active_window()
@@ -72,6 +83,7 @@ class SniperCommand(sublime_plugin.TextCommand):
         os.remove(filepath)
         return err.decode('utf-8') + out.decode('utf-8')
 
+    @uncertain_executable
     def haskell_handler(self, command, filepath):
         head, tail = os.path.split(filepath)
         path_without_extension = os.path.join(head, tail.split('.')[0])
