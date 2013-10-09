@@ -6,23 +6,28 @@ import os
 import shlex
 
 
+PANEL_NAME = "snipe_panel"
+
+
 def uncertain_executable(func):
     """Decorates execution of code, in case the compiler/etc. does not exist."""
     def wrapper(self, *args, **kwargs):
         try:
             return func(self, *args, **kwargs)
         except FileNotFoundError as e:
-            self.report('Executable not found: {}'.format(e))
-            return False
+            self.report('{}'.format(e))
     return wrapper
 
 
-class SniperSetPanelText(sublime_plugin.TextCommand):
+class SniperAddPanelText(sublime_plugin.TextCommand):
+    panel = None
+
     def run(self, edit, text):
         window = sublime.active_window()
-        panel = window.create_output_panel('snipe')
-        panel.insert(edit, 0, text)
-        window.run_command('show_panel', {'panel': 'output.snipe'})
+        self.panel = window.create_output_panel(PANEL_NAME)
+        self.panel.insert(edit, self.panel.size(), text)
+        panel_arg = "output.{}".format(PANEL_NAME)
+        window.run_command('show_panel', {'panel': panel_arg})
 
 
 class SniperCommand(sublime_plugin.TextCommand):
@@ -56,7 +61,7 @@ class SniperCommand(sublime_plugin.TextCommand):
             extension = ".hs"
             handler = self.haskell_handler
         else:
-            print("[SublimeSnipe] Scope not supported: {}".format(scopes))
+            self.report("[SublimeSnipe] Scope not supported: {}".format(scopes))
             return False
 
         tf = tempfile.NamedTemporaryFile(
@@ -65,13 +70,12 @@ class SniperCommand(sublime_plugin.TextCommand):
             prefix="sublime_sniper",
             delete=False
         )
-        print('tf.name: {v}'.format(v=tf.name))
         with open(tf.name, 'w') as f:
             f.write(code)
 
-        result = handler(command, tf.name)
-        self.report(result)
+        handler(command, tf.name)
 
+    @uncertain_executable
     def standard_handler(self, command, filepath):
         p = subprocess.Popen(
             [command, filepath],
@@ -81,7 +85,7 @@ class SniperCommand(sublime_plugin.TextCommand):
         self.report("[SublimeSnipe: Opening Process {}]".format(p.pid))
         out, err = p.communicate()
         os.remove(filepath)
-        return err.decode('utf-8') + out.decode('utf-8')
+        self.report(err.decode('utf-8') + out.decode('utf-8'))
 
     @uncertain_executable
     def haskell_handler(self, command, filepath):
@@ -98,9 +102,11 @@ class SniperCommand(sublime_plugin.TextCommand):
         )
         out, err = p.communicate()
         result = err.decode('utf-8') + out.decode('utf-8')
+        self.report(result)
+        if err:
+            return
 
         run_command = [path_without_extension]
-        print('run_command: {v}'.format(v=run_command))
         p = subprocess.Popen(
             run_command,
             stdout=subprocess.PIPE,
@@ -112,8 +118,8 @@ class SniperCommand(sublime_plugin.TextCommand):
         os.remove(path_without_extension)
         os.remove(filepath)
 
-        return result
+        self.report(result)
 
     def report(self, results):
         results = "[SublimeSnipe Results]\n" + results
-        self.view.run_command('sniper_set_panel_text', {'text': results})
+        self.view.run_command('sniper_add_panel_text', {'text': results})
