@@ -52,13 +52,14 @@ class SniperCommand(sublime_plugin.TextCommand):
             mode='w',
             suffix=extension,
             prefix="sublime_sniper",
-            delete=False)
+            delete=False
+        )
+        print('tf.name: {v}'.format(v=tf.name))
         with open(tf.name, 'w') as f:
             f.write(code)
 
         result = handler(command, tf.name)
         self.report(result)
-        os.remove(tf.name)
 
     def standard_handler(self, command, filepath):
         p = subprocess.Popen(
@@ -68,6 +69,7 @@ class SniperCommand(sublime_plugin.TextCommand):
         )
         self.report("[SublimeSnipe: Opening Process {}]".format(p.pid))
         out, err = p.communicate()
+        os.remove(filepath)
         return err.decode('utf-8') + out.decode('utf-8')
 
     def haskell_handler(self, command, filepath):
