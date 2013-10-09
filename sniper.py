@@ -25,26 +25,25 @@ class SniperCommand(sublime_plugin.TextCommand):
         self.execute(code, scopes)
 
     def execute(self, code, scopes):
-        cmd = None
+        command = None
         extension = None
-        then = None
 
-        handler = None
+        handler = self.standard_handler
         if "source.python" in scopes:
-            cmd = "python {file}"
+            command = "python"
             extension = ".py"
         elif "source.js" in scopes:
-            cmd = "node {file}"
+            command = "node"
             extension = ".js"
-        elif "source.haskell" in scopes:
-            extension = ".hs"
-            handler = self.execute_haskell
         elif "source.php" in scopes:
             # It doesn't look like Sublime will even let you impose the PHP
             # scope unless there's the opening <?php tag, so we shouldn't
             # have to worry about checking whether it's there.
-            cmd = "php {file}"
+            command = "php {file}"
             extension = ".php"
+        elif "source.haskell" in scopes:
+            extension = ".hs"
+            handler = self.haskell_handler
         else:
             print("[SublimeSnipe] Scope not supported: {}".format(scopes))
             return False
@@ -57,24 +56,21 @@ class SniperCommand(sublime_plugin.TextCommand):
         with open(tf.name, 'w') as f:
             f.write(code)
 
-        if handler:
-            result = handler(tf.name)
-        else:
-            command_parts = shlex.split(cmd.format(file=tf.name))
-
-            p = subprocess.Popen(
-                command_parts,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE
-            )
-            self.report("[SublimeSnipe: Opening Process {}]".format(p.pid))
-            out, err = p.communicate()
-            result = err.decode('utf-8') + out.decode('utf-8')
-
+        result = handler(command, tf.name)
         self.report(result)
         os.remove(tf.name)
 
-    def execute_haskell(self, filepath):
+    def standard_handler(self, command, filepath):
+        p = subprocess.Popen(
+            [command, filepath],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        self.report("[SublimeSnipe: Opening Process {}]".format(p.pid))
+        out, err = p.communicate()
+        return err.decode('utf-8') + out.decode('utf-8')
+
+    def haskell_handler(self, command, filepath):
         head, tail = os.path.split(filepath)
         path_without_extension = os.path.join(head, tail.split('.')[0])
         compile_cmd = shlex.split("ghc -o {compiled} {source}".format(
