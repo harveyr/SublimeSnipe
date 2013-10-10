@@ -17,6 +17,8 @@ With an active selection, it will execute only the selected code:
 
 Also supports **Haskell**, **Javascript** (via node.js), and **PHP**.
 
+Half-baked support for **Go** just added. It works on my system, but maybe not on yours.
+
 I threw this together in a hurry. I'll try to make it a little more sophisticated shortly.
 
 For example, I'm not sure what happens when your code hangs. My guess is Sublime goes nighty-night.
