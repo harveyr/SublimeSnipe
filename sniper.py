@@ -3,7 +3,9 @@ import sublime
 import sublime_plugin
 import tempfile
 import os
+import shutil
 import shlex
+import re
 
 
 class SniperSetPanelText(sublime_plugin.TextCommand):
@@ -44,6 +46,9 @@ class SniperCommand(sublime_plugin.TextCommand):
         elif "source.haskell" in scopes:
             extension = ".hs"
             handler = self.haskell_handler
+        elif "source.go" in scopes:
+            extension = ".go"
+            handler = self.go_handler
         else:
             print("[SublimeSnipe] Scope not supported: {}".format(scopes))
             return False
@@ -88,7 +93,6 @@ class SniperCommand(sublime_plugin.TextCommand):
         result = err.decode('utf-8') + out.decode('utf-8')
 
         run_command = [path_without_extension]
-        print('run_command: {v}'.format(v=run_command))
         p = subprocess.Popen(
             run_command,
             stdout=subprocess.PIPE,
@@ -101,6 +105,53 @@ class SniperCommand(sublime_plugin.TextCommand):
         os.remove(filepath)
 
         return result
+
+    def go_handler(self, command, filepath):
+        gopath = os.environ.get("GOPATH", None)
+        if not gopath:
+            # Hacky ...
+            for rc_file in ['.bashrc', '.zshrc']:
+                rc_file = "~/" + rc_file
+                rex = re.compile("GOPATH=(\S+)")
+                path = os.path.expanduser(rc_file)
+                with open(path, 'r') as open_f:
+                    contents = open_f.read()
+                    matches = rex.search(contents)
+                    if matches:
+                        gopath = matches.group(1)
+                        if "$HOME" in gopath:
+                            gopath = os.path.expanduser(
+                                gopath.replace("$HOME", "~/")
+                            )
+                            break
+        if not gopath:
+            return "Unable to find GOPATH"
+
+        gopath = os.path.realpath(gopath)
+
+        if not 'src' in os.listdir(gopath):
+            return "Unable to find src/ directory in GOPATH"
+
+        snipe_dir = os.path.join(gopath, 'src', 'sublimesnipe')
+        if os.path.exists(snipe_dir):
+            return "Target directory exists! Aborting. ({})".format(snipe_dir)
+
+        os.makedirs(snipe_dir)
+        target_file = os.path.join(snipe_dir, "sublimesnipe.go")
+        shutil.copy(filepath, target_file)
+
+        os.environ['GOPATH'] = gopath
+        p = subprocess.Popen(
+            ['/usr/local/go/bin/go', 'run', target_file],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            cwd=snipe_dir
+        )
+        out, err = p.communicate()
+        os.remove(target_file)
+        os.remove(filepath)
+        os.removedirs(snipe_dir)
+        return err.decode('utf-8') + out.decode('utf-8')
 
     def report(self, results):
         results = "[SublimeSnipe Results]\n" + results
