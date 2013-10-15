@@ -9,8 +9,8 @@ import shlex
 PANEL_NAME = "snipe_panel"
 
 
-def uncertain_executable(func):
-    """Decorates execution of code, in case the compiler/etc. does not exist."""
+def uncertain_file(func):
+    """Decorates access to file that may not exist."""
     def wrapper(self, *args, **kwargs):
         try:
             return func(self, *args, **kwargs)
@@ -59,7 +59,7 @@ class SniperCommand(sublime_plugin.TextCommand):
             extension = ".php"
         elif "source.haskell" in scopes:
             extension = ".hs"
-            handler = self.haskell_handler
+            command = "runhaskell"
         else:
             self.report("[SublimeSnipe] Scope not supported: {}".format(scopes))
             return False
@@ -75,7 +75,7 @@ class SniperCommand(sublime_plugin.TextCommand):
 
         handler(command, tf.name)
 
-    @uncertain_executable
+    @uncertain_file
     def standard_handler(self, command, filepath):
         p = subprocess.Popen(
             [command, filepath],
@@ -86,39 +86,6 @@ class SniperCommand(sublime_plugin.TextCommand):
         out, err = p.communicate()
         os.remove(filepath)
         self.report(err.decode('utf-8') + out.decode('utf-8'))
-
-    @uncertain_executable
-    def haskell_handler(self, command, filepath):
-        head, tail = os.path.split(filepath)
-        path_without_extension = os.path.join(head, tail.split('.')[0])
-        compile_cmd = shlex.split("ghc -o {compiled} {source}".format(
-            compiled=path_without_extension,
-            source=filepath
-        ))
-        p = subprocess.Popen(
-            compile_cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
-        out, err = p.communicate()
-        result = err.decode('utf-8') + out.decode('utf-8')
-        self.report(result)
-        if err:
-            return
-
-        run_command = [path_without_extension]
-        p = subprocess.Popen(
-            run_command,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
-        out, err = p.communicate()
-        result += err.decode('utf-8') + out.decode('utf-8')
-
-        os.remove(path_without_extension)
-        os.remove(filepath)
-
-        self.report(result)
 
     def report(self, results):
         results = "[SublimeSnipe Results]\n" + results
