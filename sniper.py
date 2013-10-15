@@ -22,14 +22,13 @@ def uncertain_file(func):
 
 
 class SniperAddPanelText(sublime_plugin.TextCommand):
-    panel = None
-
     def run(self, edit, text):
         window = sublime.active_window()
-        self.panel = window.create_output_panel(PANEL_NAME)
-        self.panel.insert(edit, self.panel.size(), text)
+        panel = window.create_output_panel(PANEL_NAME)
+        panel.insert(edit, panel.size(), text)
         panel_arg = "output.{}".format(PANEL_NAME)
         window.run_command('show_panel', {'panel': panel_arg})
+        panel.show(panel.size())
 
 
 class SniperCommand(sublime_plugin.TextCommand):
