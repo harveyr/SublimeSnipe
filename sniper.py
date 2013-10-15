@@ -3,9 +3,7 @@ import sublime
 import sublime_plugin
 import tempfile
 import os
-import shutil
 import shlex
-import re
 
 
 PANEL_NAME = "snipe_panel"
