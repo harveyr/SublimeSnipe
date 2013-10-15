@@ -1,9 +1,9 @@
 SublimeSnipe
 ============
 
-This is a Sublime Text plugin to execute code in your active view.
+This is an **experimental** Sublime Text plugin to execute code in your active view.
 
-It's meant to replace [CodeRunner](http://krillapps.com/coderunner/) in my workflow. (I like CodeRunner, but I'd rather not have to leave my editor.)
+I say "experimental" because it may be wiser to just customize Sublime's build system and use that. I'll continue to evaluate that as I work on this.
 
 With no selection, it will execute everything in the view:
 
@@ -17,11 +17,8 @@ With an active selection, it will execute only the selected code:
 
 Also supports **Haskell**, **Javascript** (via node.js), and **PHP**.
 
+Half-baked support for **Go** just added. It works on my system, but maybe not on yours.
+
 I threw this together in a hurry. I'll try to make it a little more sophisticated shortly.
 
 For example, I'm not sure what happens when your code hangs. My guess is Sublime goes nighty-night.
-
-
-#### Vs. Build System
-
-Yeah, you can use the Sublime build system to basically do the same thing (except for executing only your selection). However, then you have to save your file somewhere. If you're just quickly testing out a few lines of code, that bugs. Especially when an external drive has to spin up before you can access the file system. Then it's easier to just copy and paste into CodeRunner, in which case, see paragraph 2!
