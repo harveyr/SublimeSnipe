@@ -63,7 +63,9 @@ class SniperCommand(sublime_plugin.TextCommand):
             extension = ".go"
             command = "go run"
         else:
-            self.report("[SublimeSnipe] Scope not supported: {}".format(scopes))
+            self.report(
+                "[SublimeSnipe] Scope not supported: {}".format(scopes)
+            )
             return False
 
         tf = tempfile.NamedTemporaryFile(
